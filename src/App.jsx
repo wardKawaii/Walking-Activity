@@ -6,6 +6,10 @@ import EntryDetailModal from './components/EntryDetailModal';
 import Highlights from './components/Highlights';   
 import { FiTrendingUp, FiActivity, FiDatabase, FiLoader, FiUser } from 'react-icons/fi';
 
+// --- SECURITY CONFIGURATION ---
+const ADMIN_PASSWORD = "PathFitCS201"; // <--- CHANGE THIS TO YOUR SECRET PASSWORD
+// -----------------------------
+
 const App = () => {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +39,25 @@ const App = () => {
     setLoading(false);
   };
 
+  // --- PASSWORD CHECK HELPER ---
+  const verifyAdmin = () => {
+    const input = prompt("Enter Admin Password to continue:");
+    if (input === ADMIN_PASSWORD) {
+      return true;
+    } else {
+      alert("🚫 Access Denied: Incorrect Password");
+      return false;
+    }
+  };
+
+  const handleNewEntryClick = () => {
+    if (verifyAdmin()) {
+      setShowModal(true);
+    }
+  };
+
   const addEntry = async (entry) => {
+    // No password needed here because the modal is only open if they passed the check
     const { id, heartRate, ...rest } = entry;
     const { data, error } = await supabase
       .from('entries')
@@ -52,6 +74,11 @@ const App = () => {
   };
 
   const deleteEntry = async (id) => {
+    // Protect Deletion too!
+    if (!verifyAdmin()) return;
+
+    if (!confirm("Are you sure you want to delete this entry?")) return;
+
     const { error } = await supabase.from('entries').delete().eq('id', id);
     if (error) {
       alert("Error deleting: " + error.message);
@@ -73,21 +100,18 @@ const App = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         
-        {/* === NEW PROFILE HEADER === */}
+        {/* === PROFILE HEADER === */}
         <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-6 mb-10 bg-white/60 backdrop-blur-md p-6 rounded-3xl border border-white shadow-sm">
           
           <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
-            {/* Profile Picture Circle */}
             <div className="relative group shrink-0">
                <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-white shadow-xl bg-slate-200">
-                  {/* IMPORTANT: Make sure your image is named 'profile.jpg' in the public folder */}
                   <img 
                     src="/profile.jpg" 
                     onError={(e) => {e.target.style.display='none'; e.target.nextSibling.style.display='flex'}} 
                     alt="Edward Mendoza" 
                     className="w-full h-full object-cover" 
                   />
-                  {/* Fallback if no image found */}
                   <div className="hidden w-full h-full items-center justify-center bg-indigo-100 text-indigo-400">
                     <FiUser className="w-10 h-10" />
                   </div>
@@ -97,7 +121,6 @@ const App = () => {
                </div>
             </div>
 
-            {/* Name & Bio */}
             <div>
                <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 tracking-tight mb-2">
                  Edward Mendoza
@@ -115,10 +138,10 @@ const App = () => {
             </div>
           </div>
 
-          {/* Action Button */}
+          {/* Action Button (Now Protected) */}
           <div className="shrink-0 mt-2 md:mt-4">
             <button
-              onClick={() => setShowModal(true)}
+              onClick={handleNewEntryClick} // <--- Calls password check first
               className="group relative inline-flex items-center justify-center px-8 py-3 text-base font-semibold text-white transition-all duration-200 bg-indigo-600 rounded-full hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-500/30 active:scale-95"
             >
               <FiTrendingUp className="w-5 h-5 mr-2 group-hover:-translate-y-1 transition-transform" />
@@ -126,7 +149,6 @@ const App = () => {
             </button>
           </div>
         </div>
-        {/* === END HEADER === */}
 
         {/* Loading State */}
         {loading ? (
@@ -154,7 +176,7 @@ const App = () => {
               {entries.length > 0 ? (
                   <WalkingTable 
                     entries={sortedEntries} 
-                    onDelete={deleteEntry}
+                    onDelete={deleteEntry} // <--- Calls password check first
                     onSelect={setSelectedEntry} 
                   />
               ) : (
@@ -167,7 +189,7 @@ const App = () => {
                         Add your first entry to start your public journey.
                     </p>
                     <button
-                        onClick={() => setShowModal(true)}
+                        onClick={handleNewEntryClick} // <--- Protected here too
                         className="text-indigo-600 font-semibold hover:text-indigo-800 transition-colors"
                     >
                         + Create First Entry
