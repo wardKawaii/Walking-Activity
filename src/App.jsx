@@ -4,10 +4,10 @@ import WalkingTable from './components/WalkingTable';
 import AddEntryModal from './components/AddEntryModal';
 import EntryDetailModal from './components/EntryDetailModal';
 import Highlights from './components/Highlights';   
-import { FiTrendingUp, FiActivity, FiDatabase, FiLoader, FiUser } from 'react-icons/fi';
+import { FiTrendingUp, FiActivity, FiLoader, FiUser } from 'react-icons/fi';
 
 // --- SECURITY CONFIGURATION ---
-const ADMIN_PASSWORD = "PathFitCS201"; // <--- CHANGE THIS TO YOUR SECRET PASSWORD
+const ADMIN_PASSWORD = "PathFitCS201"; // <--- UPDATED PASSWORD
 // -----------------------------
 
 const App = () => {
@@ -51,13 +51,13 @@ const App = () => {
   };
 
   const handleNewEntryClick = () => {
+    // Ask for password BEFORE opening the form
     if (verifyAdmin()) {
       setShowModal(true);
     }
   };
 
   const addEntry = async (entry) => {
-    // No password needed here because the modal is only open if they passed the check
     const { id, heartRate, ...rest } = entry;
     const { data, error } = await supabase
       .from('entries')
@@ -74,7 +74,7 @@ const App = () => {
   };
 
   const deleteEntry = async (id) => {
-    // Protect Deletion too!
+    // Ask for password BEFORE deleting
     if (!verifyAdmin()) return;
 
     if (!confirm("Are you sure you want to delete this entry?")) return;
@@ -141,7 +141,7 @@ const App = () => {
           {/* Action Button (Now Protected) */}
           <div className="shrink-0 mt-2 md:mt-4">
             <button
-              onClick={handleNewEntryClick} // <--- Calls password check first
+              onClick={handleNewEntryClick} // <--- Checks password first
               className="group relative inline-flex items-center justify-center px-8 py-3 text-base font-semibold text-white transition-all duration-200 bg-indigo-600 rounded-full hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-500/30 active:scale-95"
             >
               <FiTrendingUp className="w-5 h-5 mr-2 group-hover:-translate-y-1 transition-transform" />
@@ -176,7 +176,7 @@ const App = () => {
               {entries.length > 0 ? (
                   <WalkingTable 
                     entries={sortedEntries} 
-                    onDelete={deleteEntry} // <--- Calls password check first
+                    onDelete={deleteEntry} // <--- Checks password first
                     onSelect={setSelectedEntry} 
                   />
               ) : (
@@ -189,7 +189,7 @@ const App = () => {
                         Add your first entry to start your public journey.
                     </p>
                     <button
-                        onClick={handleNewEntryClick} // <--- Protected here too
+                        onClick={handleNewEntryClick} // <--- Checks password first
                         className="text-indigo-600 font-semibold hover:text-indigo-800 transition-colors"
                     >
                         + Create First Entry
